@@ -34,28 +34,75 @@ function reducer(state, action) {
 }
 
 const initialState = { messages: [] };
-
 const store = createStore(reducer, initialState);
 
-const listener = () => (
-  console.log(store.getState())
+
+
+const App = React.createClass({
+  componentDidMount: function() {
+    store.subscribe(() => this.forceUpdate());
+  },
+  render: function() {
+    const messages = store.getState().messages;
+    return (
+      <div className="ui segment">
+        <MessageView messages={messages} />
+        <MessageInput />
+      </div>
+    );
+  },
+});
+
+const MessageInput = React.createClass({
+  handleSubmit: function() {
+    store.dispatch({
+      type: 'ADD_MESSAGE',
+      message: this.refs.messageInput.value,
+    });
+    this.refs.messageInput.value = '';
+  },
+  render: function() {
+    return (
+      <div className="ui input">
+        <input type="text" ref="messageInput"/>
+        <button
+          className="ui primary button"
+          onClick={this.handleSubmit}
+          type="submit"
+        >
+          Submit
+        </button>
+      </div>
+    );
+  },
+});
+
+const MessageView = React.createClass({
+  handleClick: function(index) {
+    store.dispatch({
+      type: 'DELETE_MESSAGE',
+      index: index,
+    });
+  },
+  render: function() {
+    const messages = this.props.messages.map((message, index) => (
+      <div
+        className="comment"
+        key={index}
+        onClick={() => this.handleClick(index)}
+      >
+        {message}
+      </div>
+    ));
+    return (
+      <div className="ui comments">
+        {messages}
+      </div>
+    );
+  },
+});
+
+ReactDOM.render(
+  <App />,
+  document.getElementById('content')
 );
-store.subscribe(listener);
-
-const addMessageAction1 = {
-  type: 'ADD_MESSAGE',
-  message: 'How do you read?',
-};
-store.dispatch(addMessageAction1)
-
-const addMessageAction2 = {
-  type: 'ADD_MESSAGE',
-  message: 'I read you loud and clear, Houston.',
-};
-store.dispatch(addMessageAction2);
-
-const deleteMessageAction = {
-  type: 'DELETE_MESSAGE',
-  index: 0,
-};
-store.dispatch(deleteMessageAction);
